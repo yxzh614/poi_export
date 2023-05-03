@@ -24,13 +24,14 @@
   - 行政区可用API获取[API文档](https://lbs.qq.com/service/webService/webServiceGuide/webServiceDistrict)，或者使用文档最下方的静态数据。
   - 不要带国家前缀，不要带逗号
 - file_name 导出的 excel 的文件名。
+- stop_at_repeat 使用过程中发现请求到后面的页码会出现重复的内容，字段设置为true时会跳过重复的内容。
 
 
 ```
 {
     "application": {
         "SK": "****",
-        "KEY": "AAQBZ-DBUCS-MV7OE-6AI5W-LS3H6-*****"
+        "KEY": "AAQBZ-DBUCS-MV7OE-*****-*****-*****"
     },
     "regions": [
         "山东省枣庄市市中区",
@@ -41,7 +42,8 @@
         "山东省枣庄市滕州市"
 
     ],
-    "file_name": "山东省枣庄市"
+    "file_name": "山东省枣庄市",
+    "stop_at_repeat": true
 }
 ```
 
@@ -57,3 +59,9 @@ npm start
 ## excel
 
 使用[exceljs](https://github.com/exceljs/exceljs/blob/master/README_zh.md#exceljs)导出，已经配置好适合打印的格式。
+
+# 更新
+
+## 2023-05-04
+
+增加 stop_at_repeat配置，默认为false

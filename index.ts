@@ -1,9 +1,12 @@
 import ExcelJS, { Worksheet } from "exceljs";
 import { getAll, PoiData } from "./poi";
-import config from './config.json';
+import config from "./config.json";
 
 /** 创建工作表 */
-const creatSheet = (workbookWritter: ExcelJS.stream.xlsx.WorkbookWriter, sheetName: string) => {
+const creatSheet = (
+  workbookWritter: ExcelJS.stream.xlsx.WorkbookWriter,
+  sheetName: string
+) => {
   const newSheet = workbookWritter.addWorksheet(sheetName, {
     pageSetup: {
       orientation: "landscape",
@@ -63,8 +66,7 @@ const addPois = (sheet: Worksheet, data: PoiData[]) => {
 const keyword = "婚纱";
 const filter = "category<>摄影冲印,花鸟鱼虫";
 
-const getAllByRegions = async (fileName: string,regions: string[]) => {
-  
+const getAllByRegions = async (fileName: string, regions: string[]) => {
   const newWorkBook = new ExcelJS.stream.xlsx.WorkbookWriter({
     filename: `./output/${fileName}.xlsx`,
     useStyles: true,
@@ -72,8 +74,14 @@ const getAllByRegions = async (fileName: string,regions: string[]) => {
   let index = 0;
   while (regions[index]) {
     const newSheet = creatSheet(newWorkBook, regions[index]);
-    await getAll(keyword, regions[index], filter, ({ data }) => {
-      addPois(newSheet, data);
+    await getAll({
+      keyword,
+      address: regions[index],
+      filter,
+      onProgress: ({ data }) => {
+        addPois(newSheet, data);
+      },
+      stopAtRepeat: config.stop_at_repeat || false,
     });
     newSheet.commit();
     index++;
@@ -83,6 +91,22 @@ const getAllByRegions = async (fileName: string,regions: string[]) => {
 };
 
 try {
+  // 如果觉得config太麻烦，可以直接用regions存excel里的字符串，多复制几行
+  // const regions = ``
+  // const list = regions
+  //   .trim()
+  //   .split("\n")
+  //   .map((x) => x.trim().slice(3).replace(/,/g, ""));
+  // console.log(list);
+  // const fileName = regions
+  //   .trim()
+  //   .split("\n")[0]
+  //   .split(",")
+  //   .slice(1, 3)
+  //   .join("");
+  // console.log(fileName);
+  // getAllByRegions(fileName, list);
+
   const regions = config.regions;
   getAllByRegions(config.file_name, regions);
 } catch (e) {

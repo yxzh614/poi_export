@@ -1,15 +1,15 @@
 import https from "https";
 import crypto from "crypto";
 
-import config from './config.json';
-
+import config from "./config.json";
 
 /** 睡眠0.3秒，接口QPS < 5 */
-const sleep = () => new Promise<void>((res) => {
-  setTimeout(() => {
-    res();
-  }, 300);
-});
+const sleep = () =>
+  new Promise<void>((res) => {
+    setTimeout(() => {
+      res();
+    }, 300);
+  });
 
 /** 腾讯地图应用SK */
 const SK = config.application.SK;
@@ -78,26 +78,29 @@ export const getPoiProm = (
     });
   });
 
-export const getCities = () => new Promise<{
-  count: number;
-  data: PoiData[];
-}>((res) => {
-  const req = `/ws/district/v1/list?key=${KEY}`;
-  const sig = crypto
-    .createHash("md5")
-    .update(req + SK)
-    .digest("hex");
-  get(`https://apis.map.qq.com${req}&sig=${sig}`, (data) => {
-    res(data);
+export const getCities = () =>
+  new Promise<{
+    count: number;
+    data: PoiData[];
+  }>((res) => {
+    const req = `/ws/district/v1/list?key=${KEY}`;
+    const sig = crypto
+      .createHash("md5")
+      .update(req + SK)
+      .digest("hex");
+    get(`https://apis.map.qq.com${req}&sig=${sig}`, (data) => {
+      res(data);
+    });
   });
-})
 
-export const getAll = async (
-  keyword: string,
-  address: string,
-  filter: string,
-  onProgress: (data: { page: number; data: PoiData[] }) => void
-): Promise<PoiData[]> => {
+export const getAll = async (config: {
+  keyword: string;
+  address: string;
+  filter: string;
+  onProgress: (data: { page: number; data: PoiData[] }) => void;
+  stopAtRepeat: boolean;
+}): Promise<PoiData[]> => {
+  const { keyword, address, filter, onProgress, stopAtRepeat } = config;
   let finish = false;
   let result: PoiData[] = [];
   let index = 1;
@@ -109,13 +112,15 @@ export const getAll = async (
     await sleep();
     if (res?.data?.length) {
       maxCount = res.count;
-      console.log(`【返回数量：${res?.data?.length}, 预计总数：${res.count}】`);
+      console.log(`【返回数量：${res?.data?.length}, 当前已请求：${result.length}，预计总数：${res.count}】`);
       if (
-        result.find((x) => {
+        stopAtRepeat &&
+        result.some((x) => {
           return x.id === res.data[0].id;
         })
       ) {
         // 重复数据
+        console.log(`发现重复数据：${res.data[0].address}，停止继续查询`);
         finish = true;
         continue;
       }
